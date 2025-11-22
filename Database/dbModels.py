@@ -13,11 +13,7 @@ class ItemResponse(BaseModel):
 
     class Config:
         from_attributes = True
-#Creates items
-class ItemCreate(BaseModel):
-    name: str
-    price: float
-    description: str | None = None
+
 
 class Item(Base):
     __tablename__ = "items"
@@ -25,13 +21,6 @@ class Item(Base):
     name = Column(String, index=True)
     price = Column(Float)
     description = Column(String, nullable=True)
-
-class ItemUpdate(BaseModel):
-    name: str | None
-    price: float | None
-
-class ItemDelete(BaseModel):
-    id: int
 
 #Orders
 class StatusName(str, Enum):
@@ -87,6 +76,7 @@ class ReviewResponse(BaseModel):
     reviewer_id: int
     reviewer_name: str
     rating: int
+    review_content: str | None
 
 class Review(Base):
     __tablename__ = "reviews"
@@ -95,3 +85,4 @@ class Review(Base):
     reviewer_name = Column(String)
     rating = Column(Integer)
     reviewer = relationship("User", back_populates="reviews")
+    review_content = Column(String, nullable=True)

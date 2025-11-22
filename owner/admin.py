@@ -1,6 +1,7 @@
 from sqladmin import Admin, ModelView
 from Database.dbConnect import engine
-from Database.dbModels import User, Item, Order
+from Database.dbModels import User, Item, Order, Review
+
 
 #How admin sees users
 class UserAdmin(ModelView, model=User):
@@ -10,7 +11,7 @@ class UserAdmin(ModelView, model=User):
     column_sortable_list = [User.user_id, User.name]
     column_details_exclude_list = [User.password] #hides passwords
     can_edit = True
-    can_delete = True #TODO: create deletion function
+    can_delete = True
     can_create = True
     name = "User"
     name_plural = "Users"
