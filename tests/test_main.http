@@ -1,68 +1,24 @@
 # Test your FastAPI endpoints
 
+### Root endpoint
 GET http://127.0.0.1:8000/
 Accept: application/json
 
 ###
 
-GET http://127.0.0.1:8000/items/1
-Accept: application/json
-
-
-###
-
-###
+### Get all items
 GET http://127.0.0.1:8000/items
 Accept: application/json
 
 ###
 
-POST http://127.0.0.1:8000/reviews
-Accept: application/json
-
-{
-    "item_id": 1,
-    "rating": 5,
-    "comment": "Amazing Food!",
-    "user_id": 1
-
-}
-
-###
-
-### Create another review for testing
-POST http://127.0.0.1:8000/reviews
-Content-Type: application/json
-
-{
-  "item_id": 1,
-  "rating": 4,
-  "comment": "Pretty good, would order again.",
-  "user_id": 2
-}
-
-###
-
-### Get all APPROVED reviews for an item (should be empty initially)
-GET http://127.0.0.1:8000/items/1/reviews
+### Get single item
+GET http://127.0.0.1:8000/items/1
 Accept: application/json
 
 ###
 
-### Create a review with low rating
-POST http://127.0.0.1:8000/reviews
-Content-Type: application/json
-
-{
-  "item_id": 1,
-  "rating": 2,
-  "comment": "Not great, food was cold.",
-  "user_id": 3
-}
-
-###
-
-### Create order with single item
+### Test 1: Create order with single item
 POST http://127.0.0.1:8000/orders
 Content-Type: application/json
 
@@ -79,7 +35,7 @@ Content-Type: application/json
 
 ###
 
-### Create order with multiple items
+### Test 2: Create order with multiple items
 POST http://127.0.0.1:8000/orders
 Content-Type: application/json
 
@@ -104,25 +60,58 @@ Content-Type: application/json
 
 ###
 
-### Test error: Order with no items (should fail)
+### Test 3: Create order with large quantities
 POST http://127.0.0.1:8000/orders
 Content-Type: application/json
 
 {
   "phone_num": "555-9999",
   "user_id": 3,
+  "items": [
+    {
+      "item_id": 9,
+      "quantity": 10
+    },
+    {
+      "item_id": 8,
+      "quantity": 5
+    }
+  ]
+}
+
+###
+
+### Test 4: Get order by ID
+GET http://127.0.0.1:8000/orders/1
+Accept: application/json
+
+###
+
+### Test 5: Get another order
+GET http://127.0.0.1:8000/orders/2
+Accept: application/json
+
+###
+
+### Test 6: ERROR TEST - Create order with no items (should fail with 400)
+POST http://127.0.0.1:8000/orders
+Content-Type: application/json
+
+{
+  "phone_num": "555-0000",
+  "user_id": 1,
   "items": []
 }
 
 ###
 
-### Test error: Order with non-existent item (should fail)
+### Test 7: ERROR TEST - Create order with non-existent item (should fail with 404)
 POST http://127.0.0.1:8000/orders
 Content-Type: application/json
 
 {
-  "phone_num": "555-8888",
-  "user_id": 3,
+  "phone_num": "555-1111",
+  "user_id": 1,
   "items": [
     {
       "item_id": 999,
@@ -133,8 +122,52 @@ Content-Type: application/json
 
 ###
 
-### Get order details with items
-GET http://127.0.0.1:8000/orders/1
+### Test 8: ERROR TEST - Get non-existent order (should fail with 404)
+GET http://127.0.0.1:8000/orders/999
+Accept: application/json
+
+###
+
+### Test 9: Create combo meal order
+POST http://127.0.0.1:8000/orders
+Content-Type: application/json
+
+{
+  "phone_num": "(555) 123-4567",
+  "user_id": 5,
+  "items": [
+    {
+      "item_id": 1,
+      "quantity": 1
+    },
+    {
+      "item_id": 4,
+      "quantity": 1
+    },
+    {
+      "item_id": 8,
+      "quantity": 1
+    }
+  ]
+}
+
+###
+
+### Create a review (will be PENDING)
+POST http://127.0.0.1:8000/reviews
+Content-Type: application/json
+
+{
+  "item_id": 1,
+  "rating": 5,
+  "comment": "Amazing burger! Best I've ever had.",
+  "user_id": 1
+}
+
+###
+
+### Get approved reviews for item 1
+GET http://127.0.0.1:8000/items/1/reviews
 Accept: application/json
 
 ###

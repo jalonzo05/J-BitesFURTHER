@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Float, Enum as SQLEnum, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 from .dbConnect import Base
 from enum import Enum
 
@@ -35,7 +35,7 @@ class OrderItemResponse(BaseModel):
     id: int
     item_id: int
     item_name: str
-    quantity: float
+    quantity: int
     price: float
     class Config:
         from_attributes = True
@@ -45,6 +45,7 @@ class OrderResponse(BaseModel):
     status: OrderStatus
     phone_num: str | None
     items: list[OrderItemResponse] = []
+    total_price: float
 
     class Config:
         from_attributes = True
@@ -52,13 +53,13 @@ class OrderResponse(BaseModel):
 
 #request models for creation of orders
 class OrderItemCreate(BaseModel):
-    item_name: str
-    quantity: int = 1
+    item_id: int
+    quantity: int = Field(ge=1, le=100)
 
 class OrderCreate(BaseModel):
     phone_num: str
     user_id: int #TODO: Ethan replace
-    items: list[OrderItemCreate] = []
+    items: list[OrderItemCreate]
 
 class Order(Base):
     __tablename__ = "orders"
@@ -89,7 +90,7 @@ class UserResponse(BaseModel):
     id: int
     username: str
     email: str
-    password: str
+    password: str # TODO Ethan replace user_id with session/JWT auth
 
 class User(Base):
     __tablename__ = "users"
@@ -115,7 +116,7 @@ class ReviewResponse(BaseModel):
     id: int
     reviewer_id: int
     reviewer_name: str
-    rating: int
+    rating: int = Field(ge=1, le=5)
     review_content: str | None
 
 class ReviewCreate(BaseModel):
@@ -132,7 +133,7 @@ class ReviewStatus(str, Enum):
 class Review(Base):
     __tablename__ = "reviews"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    rating = Column(Integer)
+    rating = Column(Integer, )
     comment = Column(String)
     status = Column(SQLEnum(ReviewStatus), default=ReviewStatus.PENDING)
     user_id = Column(Integer, ForeignKey("users.user_id"))

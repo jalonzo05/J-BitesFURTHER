@@ -75,17 +75,42 @@ def create_order(order_data: OrderCreate, session: dbSession):
 
     total_price = 0
     for i_data in order_data.items:
+        db_item = session.query(Item).filter(Item.id == i_data.item_id).first()
+        if not db_item:
+            raise HTTPException(status_code=404, detail="Item not found")
+
         order_item = OrderItem(
             order_id = order.id,
             item_id = i_data.item_id,
             quantity = i_data.quantity,
+            price_at_order=db_item.price
         )
         session.add(order_item)
-        total_price += i_data.price * i_data.quantity
+        total_price += db_item.price * i_data.quantity
     session.commit()
     session.refresh(order)
 
-    return order
+    #building the apis response
+    items_response = []
+    for o_item in order.order_items:
+        items_response.append(
+            OrderItemResponse(
+                id=o_item.id,
+                item_id=o_item.item_id,
+                item_name=o_item.item.name,
+                quantity=o_item.quantity,
+                price=o_item.price_at_order
+            )
+        )
+
+    return OrderResponse(
+            id = order.id,
+            status = order.status,
+            phone_num = order.phone_num,
+            items=items_response,
+            total_price=total_price
+    )
+
 
 @app.get("/orders/{order_id}", response_model=OrderResponse)
 def get_order(order_id: int, session: dbSession):
@@ -94,21 +119,27 @@ def get_order(order_id: int, session: dbSession):
         raise HTTPException(status_code=404, detail="Order not found")
 
     items_response = []
+    total_price = 0
     for o_item in order.order_items:
-        items_response.append({
-            "id": o_item.item_id,
-            "quantity": o_item.quantity,
-            "item_name": o_item.item_name,
-            "item_id": o_item.item_id,
-            "price": o_item.price
-        })
+        items_response.append(
+            OrderItemResponse(
+                id=o_item.id,
+                item_id=o_item.item_id,
+                item_name=o_item.item.name,  # Now this works with eager loading!
+                quantity=o_item.quantity,
+                price=o_item.price_at_order
+            )
+        )
+        total_price += o_item.price_at_order * o_item.quantity  # ✅ FIXED: Moved inside loop
 
-    return {
-        "id": order.id,
-        "status": order.status.value,
-        "phone_num": order.phone_num,
-        "items": items_response
-    }
+    return OrderResponse(
+        id = order.id,
+        status = order.status,
+        phone_num = order.phone_num,
+        items=items_response,
+        total_price=total_price
+
+    )
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)

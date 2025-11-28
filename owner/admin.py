@@ -29,7 +29,7 @@ class ItemAdmin(ModelView, model=Item):
     icon = "fa-user fa-fries"
 
 class OrderAdmin(ModelView, model=Order):
-    column_list = [Order.id, Order.user, Order.status, Order.phone_num]
+    column_list = [Order.id, Order.user, Order.status, Order.phone_num, Order.order_items]
     column_searchable_list = [Order.phone_num]
     column_sortable_list = [Order.id, Order.status]
     can_edit = True
@@ -49,7 +49,7 @@ class ReviewAdmin(ModelView, model=Review):
     icon = "fa-user fa-receipt"
 
 class OrderItemAdmin(ModelView, model=OrderItem):
-    column_list = [OrderItem.id, OrderItem.order_id, OrderItem.item, OrderItem.quantity]
+    column_list = [OrderItem.id, OrderItem.order_id, OrderItem.item, OrderItem.quantity, OrderItem.price_at_order]
     column_searchable_list = [OrderItem.order_id]
     column_sortable_list = [OrderItem.id, OrderItem.order_id, OrderItem.quantity]
     can_edit = True
