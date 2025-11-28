@@ -1,0 +1,63 @@
+# Test your FastAPI endpoints
+
+GET http://127.0.0.1:8000/
+Accept: application/json
+
+###
+
+GET http://127.0.0.1:8000/items/1
+Accept: application/json
+
+
+###
+
+###
+GET http://127.0.0.1:8000/items
+Accept: application/json
+
+###
+
+POST http://127.0.0.1:8000/reviews
+Accept: application/json
+
+{
+    "item_id": 1,
+    "rating": 5,
+    "comment": "Amazing Food!",
+    "user_id": 1
+
+}
+
+###
+
+### Create another review for testing
+POST http://127.0.0.1:8000/reviews
+Content-Type: application/json
+
+{
+  "item_id": 1,
+  "rating": 4,
+  "comment": "Pretty good, would order again.",
+  "user_id": 2
+}
+
+###
+
+### Get all APPROVED reviews for an item (should be empty initially)
+GET http://127.0.0.1:8000/items/1/reviews
+Accept: application/json
+
+###
+
+### Create a review with low rating
+POST http://127.0.0.1:8000/reviews
+Content-Type: application/json
+
+{
+  "item_id": 1,
+  "rating": 2,
+  "comment": "Not great, food was cold.",
+  "user_id": 3
+}
+
+###

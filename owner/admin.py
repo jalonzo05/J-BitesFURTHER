@@ -5,7 +5,6 @@ from Database.dbModels import User, Item, Order, Review
 
 #How admin sees users
 class UserAdmin(ModelView, model=User):
-    #TODO: See and delete User reviews
     column_list = [User.user_id, User.name, User.email, User.orders]
     column_searchable_list = [User.name, User.email]
     column_sortable_list = [User.user_id, User.name]
@@ -40,7 +39,7 @@ class OrderAdmin(ModelView, model=Order):
     icon = "fa-user fa-receipt"
 
 class ReviewAdmin(ModelView, model=Review):
-    column_list = [Review.id, Review.rating, Review.user_id, Review.item_id]
+    column_list = [Review.id, Review.status, Review.rating, Review.user_id, Review.item_id]
     column_searchable_list = [Review.user_id, Review.rating]
     column_sortable_list = [Review.id, Review.user_id, Review.rating]
     can_edit = True

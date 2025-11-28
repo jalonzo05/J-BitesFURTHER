@@ -82,11 +82,17 @@ class ReviewResponse(BaseModel):
     review_content: str | None
 
 
+class ReviewStatus(str, Enum):
+    PENDING = "pending"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+
 class Review(Base):
     __tablename__ = "reviews"
     id = Column(Integer, primary_key=True, autoincrement=True)
     rating = Column(Integer)
     comment = Column(String)
+    status = Column(SQLEnum(ReviewStatus), default=ReviewStatus.PENDING)
     user_id = Column(Integer, ForeignKey("users.user_id"))
     item_id = Column(Integer, ForeignKey("items.id"))
 
