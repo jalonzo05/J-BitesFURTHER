@@ -1,8 +1,10 @@
-from sqlalchemy import Column, Integer, String, Float, Enum as SQLEnum, ForeignKey, Boolean
-from sqlalchemy.orm import relationship
+from datetime import datetime
+from sqlalchemy import Column, Integer, String, Float, Enum as SQLEnum, ForeignKey, Boolean, DateTime, event
+from sqlalchemy.orm import relationship, Session
 from pydantic import BaseModel, EmailStr, Field
 from .dbConnect import Base
 from enum import Enum
+from owner.notifications import notify_order_ready, notify_order_cancelled
 
 #Items
 class ItemResponse(BaseModel):
@@ -70,6 +72,7 @@ class Order(Base):
     phone_num = Column(String, index=True)
     order_items = relationship("OrderItem", back_populates="order")
 
+    cancelled_at = Column(DateTime, nullable=True)
     def __repr__(self):
         return f"<Order(item='{self.id}', user_id='{self.user_id}')>"
 
@@ -141,3 +144,23 @@ class Review(Base):
 
     user = relationship("User", back_populates="reviews")
     item = relationship("Item", back_populates="reviews")
+
+
+@event.listens_for(Order, "before_update")
+def send_sms_on_change(mapper, connection, target):
+    #gets session
+    session = Session.object_session(target)
+
+    old_order = session.query(Order).filter(Order.id == target.id).first()
+
+    if old_order:
+        old_status = old_order.status
+        new_status = target.status
+
+        if old_status != new_status:
+            if new_status == OrderStatus.DONE:
+                print(f"📱 Sending 'ready' SMS for order #{target.id}")
+                notify_order_ready(target.phone_num, target.id)
+            elif new_status == OrderStatus.CANCELLED:
+                print(f"📱 Sending 'cancelled' SMS for order #{target.id}")
+                notify_order_cancelled(target.phone_num, target.id)

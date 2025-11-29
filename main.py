@@ -8,6 +8,7 @@ from starlette import status
 from tests.seed import seed_database
 import logging
 from owner.admin import setup_admin
+from owner.notifications import notify_order_ready, notify_order_cancelled, notify_order_confirmed
 
 Base.metadata.create_all(bind=engine)
 app = FastAPI(title="J-Bites")
@@ -90,6 +91,8 @@ def create_order(order_data: OrderCreate, session: dbSession):
     session.commit()
     session.refresh(order)
 
+    notify_order_confirmed(order.phone_num, order.id, total_price)
+
     #building the apis response
     items_response = []
     for o_item in order.order_items:
@@ -159,6 +162,7 @@ def cancel_order(order_id: int, session: dbSession):
         session.delete(order)
         session.commit()
         session.refresh(order)
+        notify_order_cancelled(order.phone_num, order.id)
         return {"message": "Order canceled.", "order": order.id}
     except Exception as e:
         session.rollback()

@@ -171,3 +171,46 @@ GET http://127.0.0.1:8000/items/1/reviews
 Accept: application/json
 
 ###
+
+### Step 1: Customer searches orders by phone number
+GET http://127.0.0.1:8000/orders/search/555-0101
+Accept: application/json
+
+# Response: List of ALL orders for this phone number
+ [
+   {
+     "id": 1,
+     "status": "done",
+     "phone_num": "555-0101",
+     "items": [...],
+     "total_price": 21.97
+   },
+   {
+     "id": 5,
+     "status": "cancelled",
+     "phone_num": "555-0101",
+     "items": [...],
+     "total_price": 4.49
+   }
+ ]
+
+###
+
+### Error test: Search with phone number that doesn't exist
+GET http://127.0.0.1:8000/orders/search/999-9999
+Accept: application/json
+
+
+###
+
+###
+POST http://127.0.0.1:8000/orders
+Content-Type: application/json
+
+{
+  "phone_num": "+19143434288",
+  "user_id": 1,
+  "items": [{"item_id": 1, "quantity": 2}]
+}
+
+###
