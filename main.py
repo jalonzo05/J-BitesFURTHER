@@ -9,11 +9,13 @@ import logging
 from owner.admin import setup_admin
 from owner.notifications import notify_order_cancelled, notify_order_confirmed
 from middleware.auth_middleware import auth_middleware
-from middleware.security import hash_password, verify_password, create_access_token
-
+from middleware.security import hash_password, verify_password, create_access_token, get_current_user
+from typing import Annotated
 app = FastAPI(title="J-Bites")
 app.middleware("http")(auth_middleware)
 setup_admin(app)
+
+CurrentUser = Annotated[User, Depends(get_current_user)]
 
 @app.on_event("startup")
 def reset_database():
@@ -40,13 +42,13 @@ def get_all_items(session: dbSession):
     return items
 
 @app.post("/reviews", status_code=201, response_model=ReviewResponse)
-def create_review(review_data, session: dbSession):
+def create_review(review_data: ReviewCreate, current_user: CurrentUser, session: dbSession):
     #sends to the DB a review that is pending and through /admin the admin will change
     review = Review(
-        item_id=review_data.review_id,
+        item_id=review_data.item_id,
         rating=review_data.rating,
         comment=review_data.comment,
-        user_id=review_data.user_id,
+        user_id=current_user.user_id,
         status=ReviewStatus.PENDING,
     )
 
@@ -65,15 +67,11 @@ def get_reviews(item_id: int, session: dbSession):
     return reviews
 
 @app.post("/orders", status_code=201, response_model=OrderResponse)
-def create_order(order_data: OrderCreate, session: dbSession):
-    user = session.query(User).filter(User.user_id == order_data.user_id).first()
-    if not user:
-        raise HTTPException(status_code=404, detail=f"User '{order_data.username}' not found")
-
+def create_order(order_data: OrderCreate, current_user: CurrentUser, session: dbSession):
     order = Order(
         status = OrderStatus.PENDING,
         phone_num = order_data.phone_num,
-        user_id = user.user_id,  # Use the looked-up user_id
+        user_id = current_user.user_id,  # Use the looked-up user_id
     )
     session.add(order)
     session.flush()
@@ -114,10 +112,10 @@ def create_order(order_data: OrderCreate, session: dbSession):
             id = order.id,
             status = order.status,
             phone_num = order.phone_num,
-            username = user.name,
+            username = current_user.name,
             items=items_response,
             total_price=total_price,
-            user_id = user.user_id
+            user_id = current_user.user_id
     )
 
 
@@ -157,8 +155,6 @@ def cancel_order(order_id: int, session: dbSession):
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
 
-    if order.status == OrderStatus.PENDING:
-        raise HTTPException(status_code=400, detail="Cannot cancel completed order. Please contact support for refunds")
     if order.status == OrderStatus.DONE:
         raise HTTPException(
             status_code=400,
@@ -168,7 +164,7 @@ def cancel_order(order_id: int, session: dbSession):
     try:
         session.delete(order)
         session.commit()
-        session.refresh(order)
+
         notify_order_cancelled(order.phone_num, order.id)
         return {"message": "Order canceled.", "order": order.id}
     except Exception as e:
@@ -216,7 +212,7 @@ def login(user: UserCreate, db: dbSession):
     if not db_user or not verify_password(user.password, db_user.password):
         raise HTTPException(status_code=401, detail="Invalid username or password")
 
-    token = create_access_token({"sub": db_user.name})
+    token = create_access_token({"sub": db_user.email})
     return {"access_token": token, "token_type": "bearer"}
 
 @app.post("/register", response_model=UserResponse)

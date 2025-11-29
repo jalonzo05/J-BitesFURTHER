@@ -49,7 +49,7 @@ class OrderResponse(BaseModel):
     items: list[OrderItemResponse] = []
     total_price: float
     username: str
-    user_id: str
+    user_id: int
 
     class Config:
         from_attributes = True
