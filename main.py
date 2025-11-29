@@ -212,7 +212,7 @@ def get_order_by_phone(phone_num: str, session: dbSession):
 
 @app.post("/login")
 def login(user: UserCreate, db: dbSession):
-    db_user = db.query(User).filter(User.name == user.name).first()
+    db_user = db.query(User).filter(User.email == user.email).first()
     if not db_user or not verify_password(user.password, db_user.password):
         raise HTTPException(status_code=401, detail="Invalid username or password")
 
@@ -223,7 +223,7 @@ def login(user: UserCreate, db: dbSession):
 def register(user: UserCreate, db: dbSession):
     existing = db.query(User).filter(User.name == user.name).first()
     if existing:
-        raise HTTPException(status_code=400, detail="Username already exists")
+        raise HTTPException(status_code=400, detail="Account already exists")
     new_user = User(
         email=user.email,
         name=user.name,

@@ -1,0 +1,10 @@
+sqladmin~=0.21.0
+twilio~=9.8.7
+python-dotenv~=1.2.1
+uvicorn~=0.38.0
+fastapi~=0.121.3
+SQLAlchemy~=2.0.44
+pydantic~=2.12.4
+python-jose~=3.5.0
+passlib~=1.7.4
+bcrypt~=5.0.0

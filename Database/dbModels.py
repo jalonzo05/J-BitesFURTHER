@@ -104,8 +104,8 @@ class User(Base):
     __tablename__ = "users"
     user_id = Column(Integer, primary_key=True)
     name = Column(String, index=True)
-    email = Column(String, index=True)
-    password = Column(String, index=True)
+    email = Column(String,unique=True, index=True)
+    password = Column(String)
 
     orders = relationship("Order", back_populates="user")
     reviews = relationship('Review', back_populates="user")
@@ -117,7 +117,7 @@ class Admin(Base):
     __tablename__ = "admins"
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, index=True)
-    password = Column(String) #TODO: Ethan work on security measures
+    password = Column(String)
     is_admin = Column(Boolean, default=True)
 
 #Reviews
